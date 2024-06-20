@@ -5,7 +5,9 @@ import classNames from 'classnames';
 
 import initializeServerI18n from '~/i18n/i18n.server';
 import { I18N_COOKIE_NAME } from '~/i18n/i18n.settings';
+
 import ThemeSetter from '~/components/ThemeSetter';
+import Fonts from '~/components/Fonts';
 
 import configuration from '~/configuration';
 
@@ -14,29 +16,29 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const language = cookies().get(I18N_COOKIE_NAME)?.value;
-  const ii8n = await initializeServerI18n(language);
+  const i18n = await initializeServerI18n(getLanguageCookie());
 
   return (
-    <html lang={ii8n.language} className={getClassName()}>
-      {/*
-        <head /> will contain the components returned by the nearest parent
-        head.tsx. Find out more at https://beta.nextjs.org/docs/api-reference/file-conventions/head
-      */}
-      <head />
-      <body>{children}</body>
-
+    <html lang={i18n.language} className={getClassName()}>
+      <Fonts />
       <ThemeSetter />
+
+      <body>{children}</body>
     </html>
   );
 }
 
 function getClassName() {
   const theme = cookies().get('theme')?.value;
+  const dark = theme === 'dark';
 
   return classNames({
-    dark: theme === 'dark',
+    dark,
   });
+}
+
+function getLanguageCookie() {
+  return cookies().get(I18N_COOKIE_NAME)?.value;
 }
 
 export const metadata = {

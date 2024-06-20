@@ -1,3 +1,5 @@
+'use client';
+
 import type { FormEvent } from 'react';
 import { useCallback } from 'react';
 import { ArrowRightIcon } from '@heroicons/react/24/outline';
@@ -16,7 +18,7 @@ const OrganizationInfoStep: React.FCC<{
   onSubmit: (data: OrganizationInfoStepData) => void;
 }> = ({ onSubmit }) => {
   const user = useUserSession();
-  const displayName = user?.data?.displayName ?? user?.auth?.email ?? '';
+  const displayName = user?.data?.displayName ?? user?.auth?.user.email ?? '';
 
   const handleFormSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -38,7 +40,7 @@ const OrganizationInfoStep: React.FCC<{
       className={'flex w-full flex-1 flex-col space-y-6'}
     >
       <div className={'flex flex-col space-y-1.5'}>
-        <Heading type={2}>Hi, {displayName}!</Heading>
+        <Heading type={2}>Hi, {displayName}</Heading>
         <SubHeading>Let&apos;s create your organization.</SubHeading>
       </div>
 

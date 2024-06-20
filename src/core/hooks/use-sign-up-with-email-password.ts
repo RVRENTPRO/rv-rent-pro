@@ -18,9 +18,9 @@ function useSignUpWithEmailAndPassword() {
     key,
     (_, { arg: credentials }: { arg: Credentials }) => {
       const emailRedirectTo = [
-        configuration.site.siteUrl,
-        configuration.paths.onboarding,
-      ].join('/');
+        window.location.origin,
+        configuration.paths.authCallback,
+      ].join('');
 
       return client.auth
         .signUp({

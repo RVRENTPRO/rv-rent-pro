@@ -1,17 +1,19 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { User } from '@supabase/gotrue-js';
+import type { Database } from '~/database.types';
+
 import { MEMBERSHIPS_TABLE, ORGANIZATIONS_TABLE } from '~/lib/db-tables';
 import type Membership from '~/lib/organizations/types/membership';
 import type MembershipRole from '~/lib/organizations/types/membership-role';
 import type Organization from '~/lib/organizations/types/organization';
 import type { OrganizationSubscription } from '~/lib/organizations/types/organization-subscription';
-import type { Database } from '../../../database.types';
 import type UserData from '~/core/session/types/user-data';
 
 type Client = SupabaseClient<Database>;
 
 const FETCH_ORGANIZATION_QUERY = `
   id,
+  uuid,
   name,
   logoURL: logo_url,
   subscription: organizations_subscriptions (
@@ -55,40 +57,15 @@ export function getOrganizationsByUserId(client: Client, userId: string) {
       `
         role,
         userId: user_id,
-        organization:organization_id (${FETCH_ORGANIZATION_QUERY})`
+        organization:organization_id (${FETCH_ORGANIZATION_QUERY})`,
     )
     .eq('user_id', userId)
     .throwOnError();
 }
 
-/**
- * @name getFirstOrganizationByUserId
- * @description Get the first organization where the user {@link userId} is a member
- * @param client
- * @param userId
- */
-export async function getFirstOrganizationByUserId(
-  client: Client,
-  userId: string
-) {
-  return client
-    .from(MEMBERSHIPS_TABLE)
-    .select<string, UserOrganizationData>(
-      `
-        role,
-        userId: user_id,
-        organization:organization_id (${FETCH_ORGANIZATION_QUERY})
-      )`
-    )
-    .eq('user_id', userId)
-    .limit(1)
-    .throwOnError()
-    .single();
-}
-
 export async function getOrganizationInvitedMembers(
   client: Client,
-  organizationId: number
+  organizationId: number,
 ) {
   return client
     .from(MEMBERSHIPS_TABLE)
@@ -97,7 +74,7 @@ export async function getOrganizationInvitedMembers(
       id,
       role,
       invitedEmail: invited_email
-    `
+    `,
     )
     .eq('organization_id', organizationId)
     .not('code', 'is', null)
@@ -129,10 +106,29 @@ export function getOrganizationMembers(client: Client, organizationId: number) {
           photoUrl: photo_url,
           displayName: display_name
         )
-       `
+       `,
     )
     .eq('organization_id', organizationId)
     .is('code', null);
+}
+
+/**
+ * @name getOrganizationByUid
+ * @description Returns the Database record of the organization by its UUID
+ * {@link uid}
+ */
+export function getOrganizationByUid(client: Client, uid: string) {
+  return client
+    .from(ORGANIZATIONS_TABLE)
+    .select<
+      string,
+      Organization & {
+        subscription: OrganizationSubscription;
+      }
+    >(FETCH_ORGANIZATION_QUERY)
+    .eq('uuid', uid)
+    .throwOnError()
+    .maybeSingle();
 }
 
 /**
@@ -161,9 +157,9 @@ export function getOrganizationById(client: Client, organizationId: number) {
  * @param client
  * @param customerId
  */
-export function getOrganizationByCustomerId(
+export async function getOrganizationByCustomerId(
   client: Client,
-  customerId: string
+  customerId: string,
 ) {
   return client
     .from(ORGANIZATIONS_TABLE)
@@ -172,10 +168,11 @@ export function getOrganizationByCustomerId(
       id,
       name,
       logoURL: logo_url,
-      subscription: organizations_subscriptions (
+      uuid,
+      subscription: organizations_subscriptions !inner (
         customerId: customer_id
       )
-      `
+      `,
     )
     .eq('organizations_subscriptions.customer_id', customerId)
     .throwOnError()
@@ -187,14 +184,30 @@ export function getOrganizationByCustomerId(
  * @param client
  * @param userIds
  */
-export function getMembersAuthMetadata(client: Client, userIds: string[]) {
-  return Promise.all(
+export async function getMembersAuthMetadata(
+  client: Client,
+  userIds: string[],
+) {
+  const users = await Promise.all(
     userIds.map((userId) => {
       const response = client.auth.admin.getUserById(userId);
 
-      return response.then((response) => {
-        return response.data.user as User;
-      });
-    }) ?? []
+      return response
+        .then((response) => {
+          return response.data.user as User;
+        })
+        .catch((error) => {
+          console.error(
+            {
+              userId,
+            },
+            `Error fetching user: ${error}`,
+          );
+
+          return undefined;
+        });
+    }) ?? [],
   );
+
+  return users.filter(Boolean) as User[];
 }

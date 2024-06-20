@@ -7,16 +7,21 @@ import AuthErrorMessage from '~/app/auth/components/AuthErrorMessage';
 import EmailPasswordSignInForm from '~/app/auth/components/EmailPasswordSignInForm';
 
 const EmailPasswordSignInContainer: React.FCC<{
-  onSignIn: () => unknown;
+  onSignIn: (userId?: string) => unknown;
 }> = ({ onSignIn }) => {
   const signInMutation = useSignInWithEmailPassword();
   const isLoading = signInMutation.isMutating;
 
   const onSubmit = useCallback(
     async (credentials: { email: string; password: string }) => {
-      await signInMutation.trigger(credentials);
+      try {
+        const data = await signInMutation.trigger(credentials);
+        const userId = data?.user?.id;
 
-      onSignIn();
+        onSignIn(userId);
+      } catch (e) {
+        // wrong credentials, do nothing
+      }
     },
     [onSignIn, signInMutation]
   );

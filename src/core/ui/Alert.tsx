@@ -71,7 +71,7 @@ function AlertHeading({ children }: React.PropsWithChildren) {
 
   const Icon = useMemo(
     () => (type ? icons[type](className) : null),
-    [type, className]
+    [type, className],
   );
 
   return (
@@ -79,7 +79,7 @@ function AlertHeading({ children }: React.PropsWithChildren) {
       <span>{Icon}</span>
 
       <Heading type={6}>
-        <span className={'font-semibold'}>{children}</span>
+        <span className={'text-base font-semibold'}>{children}</span>
       </Heading>
     </div>
   );
@@ -105,12 +105,12 @@ function getClassNameBuilder() {
       defaultVariants: {
         type: `info`,
       },
-    }
+    },
   );
 }
 
 function getIconClassNameBuilder() {
-  return cva([`rounded-full h-6`], {
+  return cva([`rounded-full h-5`], {
     variants: {
       type: {
         success: `text-green-700`,
@@ -126,3 +126,5 @@ function getIconClassNameBuilder() {
 }
 
 export default Alert;
+
+export { Alert, AlertHeading };

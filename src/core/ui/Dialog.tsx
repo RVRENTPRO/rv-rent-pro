@@ -1,23 +1,13 @@
 'use client';
-
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import classNames from 'classnames';
-import XMarkIcon from '@heroicons/react/24/outline/XMarkIcon';
+import classNames from 'clsx';
 
 const Dialog = DialogPrimitive.Root;
 const DialogTrigger = DialogPrimitive.Trigger;
 
-const DialogPortal = ({
-  className,
-  children,
-  ...props
-}: DialogPrimitive.DialogPortalProps) => (
-  <DialogPrimitive.Portal className={classNames(className)} {...props}>
-    <div className="fixed inset-0 z-50 flex items-start justify-center sm:items-center">
-      {children}
-    </div>
-  </DialogPrimitive.Portal>
+const DialogPortal = (props: DialogPrimitive.DialogPortalProps) => (
+  <DialogPrimitive.Portal {...props} />
 );
 
 DialogPortal.displayName = DialogPrimitive.Portal.displayName;
@@ -28,8 +18,8 @@ const DialogOverlay = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <DialogPrimitive.Overlay
     className={classNames(
-      'animate-in fade-in fixed inset-0 z-50 transition-opacity',
-      className
+      'fixed inset-0 z-50 bg-background/80 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',
+      className,
     )}
     {...props}
     ref={ref}
@@ -43,24 +33,18 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
 >(({ className, children, ...props }, ref) => (
   <DialogPortal>
-    <DialogOverlay className={'bg-black-500/20 dark:bg-white/20'} />
+    <DialogOverlay />
 
     <DialogPrimitive.Content
       ref={ref}
       className={classNames(
-        'animate-in fade-in-90 slide-in-from-bottom-10 sm:zoom-in-90' +
-          ' sm:slide-in-from-bottom-0 fixed z-50 grid w-full scale-100 gap-4' +
-          ' p-6 opacity-100 sm:max-w-lg sm:rounded-lg',
-        className
+        'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg' +
+          ' translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg md:w-full dark:shadow-primary/30 dark:shadow-2xl',
+        className,
       )}
       {...props}
     >
       {children}
-
-      <DialogPrimitive.Close className="absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-primary-100 dark:focus:ring-primary-400 dark:focus:ring-offset-primary-900 dark:data-[state=open]:bg-primary-800">
-        <XMarkIcon className="h-4 w-4" />
-        <span className="sr-only">Close</span>
-      </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </DialogPortal>
 ));
@@ -74,7 +58,7 @@ const DialogHeader = ({
   <div
     className={classNames(
       'flex flex-col space-y-2 text-center sm:text-left',
-      className
+      className,
     )}
     {...props}
   />
@@ -89,7 +73,7 @@ const DialogFooter = ({
   <div
     className={classNames(
       'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2',
-      className
+      className,
     )}
     {...props}
   />
@@ -103,7 +87,7 @@ const DialogTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
     ref={ref}
-    className={classNames('text-lg', className)}
+    className={classNames('text-lg font-semibold', className)}
     {...props}
   />
 ));
@@ -117,9 +101,8 @@ const DialogDescription = React.forwardRef<
   <DialogPrimitive.Description
     ref={ref}
     className={classNames(
-      'text-sm text-primary-500',
-      'dark:text-primary-400',
-      className
+      'text-sm text-primary dark:text-primary/90',
+      className,
     )}
     {...props}
   />

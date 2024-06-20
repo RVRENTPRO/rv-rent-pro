@@ -9,9 +9,9 @@ import If from '~/core/ui/If';
 import Alert from '~/core/ui/Alert';
 import TextField from '~/core/ui/TextField';
 import Button from '~/core/ui/Button';
+import Trans from '~/core/ui/Trans';
 
 import configuration from '~/configuration';
-import Trans from '~/core/ui/Trans';
 
 function PasswordResetContainer() {
   const resetPasswordMutation = useResetPassword();
@@ -31,7 +31,7 @@ function PasswordResetContainer() {
         redirectTo,
       });
     },
-    [resetPasswordMutation]
+    [resetPasswordMutation],
   );
 
   return (
@@ -73,7 +73,6 @@ function PasswordResetContainer() {
               <Button
                 loading={resetPasswordMutation.isMutating}
                 type="submit"
-                size="large"
                 block
               >
                 <Trans i18nKey={'auth:passwordResetLabel'} />
@@ -91,8 +90,11 @@ export default PasswordResetContainer;
 /**
  * @description
  * Return the URL where the user will be redirected to after resetting
- * their password. By default, we will redirect to the sign-in page
+ * their password
  */
 function getReturnUrl() {
-  return `${window.location.origin}${configuration.paths.signIn}`;
+  const host = window.location.origin;
+  const callback = configuration.paths.authCallback;
+
+  return `${host}${callback}`;
 }

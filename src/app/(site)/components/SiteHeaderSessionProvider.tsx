@@ -5,8 +5,9 @@ import { useState } from 'react';
 import SiteHeader from '~/app/(site)/components/SiteHeader';
 import UserSessionContext from '~/core/session/contexts/user-session';
 import UserSession from '~/core/session/types/user-session';
+import AuthChangeListener from '~/components/AuthChangeListener';
 
-type Data = {
+type Session = {
   role: UserSession['role'];
   auth: UserSession['auth'];
   data: UserSession['data'];
@@ -14,14 +15,17 @@ type Data = {
 
 function SiteHeaderSessionProvider(
   props: React.PropsWithChildren<{
-    data: Data;
-  }>
+    data: Maybe<Session>;
+    accessToken: Maybe<string>;
+  }>,
 ) {
-  const [userSession, setUserSession] = useState<Maybe<Data>>(props.data);
+  const [userSession, setUserSession] = useState(props.data);
 
   return (
     <UserSessionContext.Provider value={{ userSession, setUserSession }}>
-      <SiteHeader />
+      <AuthChangeListener accessToken={props.accessToken}>
+        <SiteHeader />
+      </AuthChangeListener>
     </UserSessionContext.Provider>
   );
 }

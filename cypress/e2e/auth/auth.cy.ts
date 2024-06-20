@@ -1,17 +1,12 @@
 import auth from '../../support/auth.po';
 import configuration from '~/configuration';
+import authPo from '../../support/auth.po';
 
 const randomNumber = () => Math.round(Math.random() * 100);
 
 describe(`Authentication`, () => {
-  Cypress.on('uncaught:exception', () => {
-    // returning false here prevents Cypress from
-    // failing the test
-    return false;
-  });
-
   // randomize email to avoid using duplicate emails
-  const email = `test+${randomNumber()}@rvrentpro.com`;
+  const email = `test+${randomNumber()}@rentpro.dev`;
   const password = `rvrentpropwd`;
 
   describe(`Sign Up`, () => {
@@ -33,12 +28,19 @@ describe(`Authentication`, () => {
           auth.signUpWithEmailAndPassword(email, password);
 
           cy.cyGet('email-confirmation-alert').should('exist');
+
+          cy.wait(100);
+          cy.task('confirmEmail', email);
         });
       });
 
       describe(`when the request is unsuccessful because the user already signed up`, () => {
         it('should display an error message', () => {
-          auth.signUpWithEmailAndPassword(email, password);
+          auth.signUpWithEmailAndPassword(
+            authPo.getDefaultUserEmail(),
+            authPo.getDefaultUserPassword()
+          );
+
           auth.$getErrorMessage().should('exist');
         });
       });
@@ -53,7 +55,7 @@ describe(`Authentication`, () => {
     describe(`given the user signs in with email/password`, () => {
       describe(`when the request is not successful`, () => {
         it('should display an error message', () => {
-          const email = `awrongemail@rvrentpro.com`;
+          const email = `awrongemail@rentpro.dev`;
           const password = `somePassword`;
 
           auth.signInWithEmailAndPassword(email, password);

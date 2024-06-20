@@ -1,9 +1,11 @@
+'use client';
+
 import { createRef, useLayoutEffect, useMemo, useState } from 'react';
 
 /**
  * @description Render a component lazily based on the IntersectionObserver
  * configuration provided.
- * Full documentation at: https://rvrentpro.com/docs/components-utilities#lazyrender
+ * Full documentation at: https://rentpro.dev/docs/components-utilities#lazyrender
  * @param children
  * @param threshold
  * @param rootMargin

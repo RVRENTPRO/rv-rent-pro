@@ -1,10 +1,11 @@
+'use client';
+
 import { useMemo } from 'react';
 import Trans from '~/core/ui/Trans';
 import Link from 'next/link';
 
 import {
   ChevronDownIcon,
-  Cog8ToothIcon,
   ArrowLeftOnRectangleIcon,
   Squares2X2Icon,
   PaintBrushIcon,
@@ -41,8 +42,8 @@ const ProfileDropdown: React.FCC<{
 }> = ({ userSession, signOutRequested }) => {
   const signedInAsLabel = useMemo(() => {
     const displayName = userSession?.data?.displayName || undefined;
-    const email = userSession?.auth?.email || undefined;
-    const phone = userSession?.auth?.phone || undefined;
+    const email = userSession?.auth?.user.email || undefined;
+    const phone = userSession?.auth?.user.phone || undefined;
 
     return displayName ?? email ?? phone;
   }, [userSession]);
@@ -88,18 +89,6 @@ const ProfileDropdown: React.FCC<{
           </Link>
         </DropdownMenuItem>
 
-        <DropdownMenuItem>
-          <Link
-            className={'full flex w-full items-center space-x-2'}
-            href={'/settings/profile'}
-          >
-            <Cog8ToothIcon className={'h-5'} />
-            <span>
-              <Trans i18nKey={'common:settingsTabLabel'} />
-            </span>
-          </Link>
-        </DropdownMenuItem>
-
         <ThemeSelectorSubMenu />
 
         <DropdownMenuSeparator />
@@ -124,7 +113,7 @@ const ProfileDropdown: React.FCC<{
 
 function ThemeSelectorSubMenu() {
   const Wrapper: React.FCC = ({ children }) => (
-    <span className={'flex items-center space-x-2'}>{children}</span>
+    <span className={'flex items-center space-x-2.5'}>{children}</span>
   );
 
   return (
@@ -148,7 +137,7 @@ function ThemeSelectorSubMenu() {
             onClick={() => setTheme(LIGHT_THEME_CLASSNAME)}
           >
             <Wrapper>
-              <SunIcon className={'h-5'} />
+              <SunIcon className={'h-4'} />
 
               <span>
                 <Trans i18nKey={'common:lightTheme'} />
@@ -161,7 +150,7 @@ function ThemeSelectorSubMenu() {
             onClick={() => setTheme(DARK_THEME_CLASSNAME)}
           >
             <Wrapper>
-              <MoonIcon className={'h-5'} />
+              <MoonIcon className={'h-4'} />
 
               <span>
                 <Trans i18nKey={'common:darkTheme'} />
@@ -174,7 +163,7 @@ function ThemeSelectorSubMenu() {
             onClick={() => setTheme(SYSTEM_THEME_CLASSNAME)}
           >
             <Wrapper>
-              <ComputerDesktopIcon className={'h-5'} />
+              <ComputerDesktopIcon className={'h-4'} />
 
               <span>
                 <Trans i18nKey={'common:systemTheme'} />

@@ -3,12 +3,14 @@ import MembershipRole from '~/lib/organizations/types/membership-role';
 import authPo from '../../support/auth.po';
 
 describe(`Create Invite`, () => {
-  const email = `invited-member@rvrentpro.com`;
+  const email = `invited-member@rentpro.dev`;
   const defaultEmailAddress = authPo.getDefaultUserEmail();
 
   function signIn() {
-    organizationPageObject.useDefaultOrganization();
-    cy.signIn(`/settings/organization/members/invite`);
+    const organization = organizationPageObject.useDefaultOrganization();
+    cy.signIn(
+      `/dashboard/${organization}/settings/organization/members/invite`
+    );
   }
 
   describe(`Given a user invites a new member`, () => {
@@ -28,7 +30,7 @@ describe(`Create Invite`, () => {
     });
 
     describe(`When entering the same email address multiple times`, () => {
-      const emailAddress = `dupe@rvrentpro.com`;
+      const emailAddress = `dupe@rentpro.dev`;
 
       function setup() {
         signIn();

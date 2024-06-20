@@ -1,9 +1,11 @@
+import Image from 'next/image';
+
 import {
   AtSymbolIcon,
   DevicePhoneMobileIcon,
 } from '@heroicons/react/24/outline';
 
-const DEFAULT_IMAGE_SIZE = 28;
+const DEFAULT_IMAGE_SIZE = 22;
 
 const AuthProviderLogo: React.FC<{
   providerId: string;
@@ -14,7 +16,7 @@ const AuthProviderLogo: React.FC<{
 
   if (typeof image === `string`) {
     return (
-      <img
+      <Image
         decoding={'async'}
         loading={'lazy'}
         src={image}
@@ -28,7 +30,7 @@ const AuthProviderLogo: React.FC<{
   return <>{image}</>;
 };
 
-function getOAuthProviderLogos(): Record<string, string | JSX.Element> {
+function getOAuthProviderLogos(): Record<string, string | React.ReactNode> {
   return {
     email: <AtSymbolIcon className={'h-7'} />,
     phone: <DevicePhoneMobileIcon className={'h-7'} />,

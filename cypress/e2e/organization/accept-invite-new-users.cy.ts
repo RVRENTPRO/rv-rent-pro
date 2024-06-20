@@ -2,7 +2,7 @@ import organizationPageObject from '../../support/organization.po';
 import authPo from '../../support/auth.po';
 
 describe(`Accept Invite - New User`, () => {
-  const nonExistingUserEmail = `user-invite-email-pwd@rvrentpro.com`;
+  const nonExistingUserEmail = `user-invite-email-pwd@rentpro.dev`;
   const nonExistingUserInviteCode = 'yB0kEPZCljLIsg4a';
 
   describe(`After accepting the invite`, () => {
@@ -15,9 +15,14 @@ describe(`Accept Invite - New User`, () => {
         authPo.getDefaultUserPassword()
       );
 
-      cy.wait(1000);
+      cy.cyGet('email-confirmation-alert').should('exist');
 
-      cy.visit(`/settings/organization/members`);
+      cy.task('confirmEmail', nonExistingUserEmail);
+      cy.wait(250);
+
+      const organization = organizationPageObject.useDefaultOrganization();
+
+      cy.signIn(`/dashboard/${organization}/settings/organization/members`);
 
       organizationPageObject
         .$getInvitedMemberByEmail(nonExistingUserEmail)

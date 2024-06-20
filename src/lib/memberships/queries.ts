@@ -14,7 +14,7 @@ export async function getMembershipByInviteCode<Response>(
   params: {
     code: string;
     query?: string;
-  }
+  },
 ) {
   return client
     .from(MEMBERSHIPS_TABLE)
@@ -27,7 +27,7 @@ export async function getMembershipByInviteCode<Response>(
       invitedEmail: invited_email,
       organizationId: organization_id,
       userId: user_id,
-      `
+      `,
     )
     .eq('code', params.code)
     .throwOnError()
@@ -41,16 +41,23 @@ export async function getUserMembershipByOrganization(
   client: Client,
   params: {
     userId: string;
-    organizationId: number;
-  }
+    organizationUid: string;
+  },
 ) {
   const { data, error } = await client
     .from(MEMBERSHIPS_TABLE)
-    .select<string, Membership>(`*`)
+    .select<string, Membership>(
+      `
+      *,
+      organization: organization_id !inner (
+        uuid
+      )
+     `,
+    )
     .eq('user_id', params.userId)
-    .eq('organization_id', params.organizationId)
-    .throwOnError()
-    .single();
+    .eq('organization.uuid', params.organizationUid)
+    .single()
+    .throwOnError();
 
   if (error) {
     throw error;
@@ -64,7 +71,7 @@ export async function getUserMembershipByOrganization(
  */
 export async function getUserRoleByMembershipId(
   client: Client,
-  membershipId: number
+  membershipId: number,
 ) {
   const { data, error } = await client
     .from(MEMBERSHIPS_TABLE)
@@ -90,7 +97,7 @@ export async function getMembershipByEmail(
   params: {
     email: string;
     organizationId: number;
-  }
+  },
 ) {
   return client
     .from(MEMBERSHIPS_TABLE)
@@ -102,7 +109,7 @@ export async function getMembershipByEmail(
       invitedEmail: invited_email,
       organizationId: organization_id,
       userId: user_id
-  `
+  `,
     )
     .eq('invited_email', params.email)
     .eq('organization_id', params.organizationId)

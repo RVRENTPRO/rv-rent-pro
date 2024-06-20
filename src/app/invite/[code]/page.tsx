@@ -1,5 +1,10 @@
 import { use } from 'react';
 import { notFound, redirect } from 'next/navigation';
+import { cookies, headers } from 'next/headers';
+import { isNotFoundError } from 'next/dist/client/components/not-found';
+
+import invariant from 'tiny-invariant';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 
 import If from '~/core/ui/If';
 import Heading from '~/core/ui/Heading';
@@ -11,6 +16,9 @@ import getSupabaseServerClient from '~/core/supabase/server-client';
 import { getMembershipByInviteCode } from '~/lib/memberships/queries';
 import ExistingUserInviteForm from '~/app/invite/components/ExistingUserInviteForm';
 import NewUserInviteForm from '~/app/invite/components/NewUserInviteForm';
+import InviteCsrfTokenProvider from '~/app/invite/components/InviteCsrfTokenProvider';
+import { Database } from '~/database.types';
+import { withI18n } from '~/i18n/with-i18n';
 
 interface Context {
   params: {
@@ -23,11 +31,8 @@ export const metadata = {
 };
 
 const InvitePage = ({ params }: Context) => {
-  const data = use(loadInviteData(params.code));
-
-  if ('redirect' in data) {
-    return redirect(data.destination);
-  }
+  const code = params.code;
+  const data = use(loadInviteData(code));
 
   const organization = data.membership.organization;
 
@@ -54,25 +59,34 @@ const InvitePage = ({ params }: Context) => {
         </p>
 
         <p className={'text-center'}>
-          <If condition={!data.user}>
+          <If condition={!data.session}>
             <Trans i18nKey={'auth:signUpToAcceptInvite'} />
           </If>
         </p>
       </div>
 
-      <If condition={data.user} fallback={<NewUserInviteForm />}>
-        {(user) => <ExistingUserInviteForm user={user} />}
-      </If>
+      <InviteCsrfTokenProvider csrfToken={data.csrfToken}>
+        <If
+          condition={data.session}
+          fallback={<NewUserInviteForm code={code} />}
+        >
+          {(session) => (
+            <ExistingUserInviteForm code={code} session={session} />
+          )}
+        </If>
+      </InviteCsrfTokenProvider>
     </>
   );
 };
 
-export default InvitePage;
+export default withI18n(InvitePage);
 
 async function loadInviteData(code: string) {
   const logger = getLogger();
+  const client = getSupabaseServerClient();
 
   // we use an admin client to be able to read the pending membership
+  // without having to be logged in
   const adminClient = getSupabaseServerClient({ admin: true });
 
   try {
@@ -107,27 +121,43 @@ async function loadInviteData(code: string) {
       return notFound();
     }
 
-    const { data: userSession } = await adminClient.auth.getSession();
-    const user = userSession?.session?.user;
+    const { data: userSession } = await client.auth.getSession();
+    const session = userSession?.session;
+    const csrfToken = headers().get('x-csrf-token');
 
     return {
-      user,
+      csrfToken,
+      session,
       membership,
       code,
     };
   } catch (error) {
+    if (isNotFoundError(error)) {
+      return notFound();
+    }
+
     logger.error(
       error,
       `Error encountered while fetching invite. Redirecting to home page...`
     );
 
-    return redirectTo('/');
+    redirect('/');
   }
 }
 
-function redirectTo(destination: string) {
-  return {
-    redirect: true,
-    destination: destination,
-  };
+/**
+ * @name getAdminClient
+ */
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  invariant(url, `Supabase URL not provided`);
+  invariant(serviceRoleKey, `Supabase Service role key not provided`);
+
+  // we build a server client to be able to read the pending membership
+  // bypassing the session using empty headers and cookies
+  return createServerComponentClient<Database>({
+    cookies,
+  });
 }

@@ -1,15 +1,13 @@
-import readServerCookie, {
-  AnyCookies,
-} from '~/core/generic/read-server-cookie';
+import { cookies } from 'next/headers';
 
 const ORGANIZATION_ID_COOKIE_NAME = 'organizationId';
 
-export function createOrganizationIdCookie(organizationId: number) {
-  const secure = process.env.EMULATOR !== 'true';
+export function createOrganizationIdCookie(organizationId: string) {
+  const secure = process.env.ENVIRONMENT === 'production';
 
   return {
     name: ORGANIZATION_ID_COOKIE_NAME,
-    value: organizationId.toString(),
+    value: organizationId,
     httpOnly: false,
     secure,
     path: '/',
@@ -17,15 +15,10 @@ export function createOrganizationIdCookie(organizationId: number) {
   };
 }
 
-export async function parseOrganizationIdCookie(cookies: AnyCookies) {
-  const organizationId = await readServerCookie(
-    cookies,
-    ORGANIZATION_ID_COOKIE_NAME
-  );
-
-  if (Number.isNaN(Number(organizationId)) || organizationId === null) {
-    return undefined;
-  }
-
-  return organizationId;
+/**
+ * @name parseOrganizationIdCookie
+ * @description Parse the organization UUID cookie from the request
+ */
+export async function parseOrganizationIdCookie() {
+  return cookies().get(ORGANIZATION_ID_COOKIE_NAME)?.value;
 }

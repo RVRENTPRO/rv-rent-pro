@@ -1,39 +1,58 @@
+import 'server-only';
+
 import { getUserDataById } from '~/lib/server/queries';
 import getSupabaseServerClient from '~/core/supabase/server-client';
+import initializeServerI18n from '~/i18n/i18n.server';
+import getLanguageCookie from '~/i18n/get-language-cookie';
 
 /**
  * @name loadUserData
- * @description Loads the user's data from Supabase Auth and Database
- * @param args
+ * @description Loads the user's data from Supabase Auth and Database.
+ * This is used in the (site) layout to display the user's name and avatar.
  */
 async function loadUserData() {
   const client = getSupabaseServerClient();
 
   try {
-    const { data, error } = await client.auth.getUser();
+    const { data, error } = await client.auth.getSession();
 
-    if (!data.user || error) {
+    if (!data.session || error) {
       return emptyUserData();
     }
 
-    const userData = await getUserDataById(client, data.user.id);
+    const userId = data.session.user.id;
+    const userData = await getUserDataById(client, userId);
+    const language = await getLanguage();
+    const accessToken = data.session.access_token;
 
     return {
-      auth: data.user,
-      data: userData || undefined,
-      role: undefined,
+      accessToken,
+      language,
+      session: {
+        auth: data.session,
+        data: userData || undefined,
+        role: undefined,
+      },
     };
   } catch (e) {
     return emptyUserData();
   }
 }
 
-function emptyUserData() {
+async function emptyUserData() {
+  const language = await getLanguage();
+
   return {
-    auth: undefined,
-    data: undefined,
-    role: undefined,
+    accessToken: undefined,
+    language,
+    session: undefined,
   };
 }
 
 export default loadUserData;
+
+async function getLanguage() {
+  const { language } = await initializeServerI18n(getLanguageCookie());
+
+  return language;
+}

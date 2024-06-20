@@ -2,9 +2,10 @@ import Link from 'next/link';
 
 import Trans from '~/core/ui/Trans';
 import Heading from '~/core/ui/Heading';
+import SignUpMethodsContainer from '~/app/auth/components/SignUpMethodsContainer';
 
 import configuration from '~/configuration';
-import SignUpMethodsContainer from '~/app/auth/components/SignUpMethodsContainer';
+import { withI18n } from '~/i18n/with-i18n';
 
 const SIGN_IN_PATH = configuration.paths.signIn;
 
@@ -28,7 +29,7 @@ function SignUpPage() {
       <div className={'flex justify-center text-xs'}>
         <p className={'flex space-x-1'}>
           <span>
-            <Trans i18nKey={'auth:doNotHaveAccountYet'} />
+            <Trans i18nKey={'auth:alreadyHaveAnAccount'} />
           </span>
 
           <Link
@@ -43,4 +44,4 @@ function SignUpPage() {
   );
 }
 
-export default SignUpPage;
+export default withI18n(SignUpPage);

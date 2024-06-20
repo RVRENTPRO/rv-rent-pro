@@ -22,20 +22,22 @@ function SignInMethodsContainer() {
 
   return (
     <>
-      <OAuthProviders onSignIn={onSignIn} />
+      <If condition={configuration.auth.providers.oAuth.length}>
+        <OAuthProviders />
 
-      <If condition={configuration.auth.providers.emailPassword}>
         <div>
           <span className={'text-xs text-gray-400'}>
             <Trans i18nKey={'auth:orContinueWithEmail'} />
           </span>
         </div>
+      </If>
 
+      <If condition={configuration.auth.providers.emailPassword}>
         <EmailPasswordSignInContainer onSignIn={onSignIn} />
       </If>
 
       <If condition={configuration.auth.providers.phoneNumber}>
-        <PhoneNumberSignInContainer onSignIn={onSignIn} />
+        <PhoneNumberSignInContainer onSuccess={onSignIn} mode={'signIn'} />
       </If>
 
       <If condition={configuration.auth.providers.emailLink}>

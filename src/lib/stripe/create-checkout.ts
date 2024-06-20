@@ -4,9 +4,10 @@ import getStripeInstance from '~/core/stripe/get-stripe';
 
 interface CreateCheckoutParams {
   returnUrl: string;
-  organizationId: number;
+  organizationUid: string;
   priceId: string;
   customerId?: string;
+  trialPeriodDays?: Maybe<number>;
 }
 
 /**
@@ -27,10 +28,10 @@ export default async function createStripeCheckout(
     cancel: 'true',
   });
 
-  // in rvrentpro, a subscription belongs to an organization,
+  // in RVRentPro, a subscription belongs to an organization,
   // rather than to a user
   // if you wish to change it, use the current user ID instead
-  const clientReferenceId = params.organizationId;
+  const clientReferenceId = params.organizationUid;
 
   // we pass an optional customer ID, so we do not duplicate the Stripe
   // customers if an organization subscribes multiple times
@@ -49,6 +50,11 @@ export default async function createStripeCheckout(
     price: params.priceId,
   };
 
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData =
+    {
+      trial_period_days: params.trialPeriodDays,
+    };
+
   return stripe.checkout.sessions.create({
     mode,
     customer,
@@ -56,6 +62,7 @@ export default async function createStripeCheckout(
     success_url: successUrl,
     cancel_url: cancelUrl,
     client_reference_id: clientReferenceId.toString(),
+    subscription_data: subscriptionData,
   });
 }
 

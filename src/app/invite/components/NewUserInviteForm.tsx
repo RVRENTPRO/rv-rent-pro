@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useCallback, useState, useTransition } from 'react';
 
 import EmailLinkAuth from '~/app/auth/components/EmailLinkAuth';
 import OAuthProviders from '~/app/auth/components/OAuthProviders';
@@ -12,36 +11,67 @@ import EmailPasswordSignUpContainer from '~/app/auth/components/EmailPasswordSig
 import If from '~/core/ui/If';
 import Button from '~/core/ui/Button';
 import Trans from '~/core/ui/Trans';
+import Alert from '~/core/ui/Alert';
 
 import configuration from '~/configuration';
-import useAcceptInvite from '~/app/invite/use-accept-invite';
 import PageLoadingIndicator from '~/core/ui/PageLoadingIndicator';
+import isBrowser from '~/core/generic/is-browser';
+import useCsrfToken from '~/core/hooks/use-csrf-token';
+import { acceptInviteAction } from '~/lib/memberships/actions';
 
 enum Mode {
   SignUp,
   SignIn,
 }
 
-function NewUserInviteForm() {
+function NewUserInviteForm(
+  props: React.PropsWithChildren<{
+    code: string;
+  }>
+) {
   const [mode, setMode] = useState<Mode>(Mode.SignUp);
-  const acceptInvite = useAcceptInvite();
-  const router = useRouter();
+  const [isSubmitting, startTransition] = useTransition();
+  const [verifyEmail, setVerifyEmail] = useState(false);
+  const csrfToken = useCsrfToken();
 
-  const onInviteAccepted = useCallback(async () => {
-    await acceptInvite.trigger();
+  const oAuthReturnUrl = isBrowser() ? window.location.pathname : '';
 
-    return router.push(configuration.paths.appHome);
-  }, [acceptInvite, router]);
+  const onInviteAccepted = useCallback(
+    async (userId?: string) => {
+      startTransition(async () => {
+        const shouldVerifyEmail = await acceptInviteAction({
+          code: props.code,
+          userId,
+          csrfToken,
+        });
+
+        setVerifyEmail(shouldVerifyEmail);
+      });
+    },
+    [csrfToken, props.code]
+  );
+
+  if (verifyEmail) {
+    return (
+      <Alert type={'success'}>
+        <Alert.Heading>
+          <Trans i18nKey={'auth:emailConfirmationAlertHeading'} />
+        </Alert.Heading>
+
+        <Trans i18nKey={'auth:emailConfirmationAlertBody'} />
+      </Alert>
+    );
+  }
 
   return (
     <>
-      <If condition={acceptInvite.isMutating}>
+      <If condition={isSubmitting}>
         <PageLoadingIndicator fullPage>
           Accepting invite. Please wait...
         </PageLoadingIndicator>
       </If>
 
-      <OAuthProviders onSignIn={onInviteAccepted} />
+      <OAuthProviders returnUrl={oAuthReturnUrl} />
 
       <If condition={configuration.auth.providers.emailPassword}>
         <If condition={mode === Mode.SignUp}>
@@ -76,7 +106,10 @@ function NewUserInviteForm() {
       </If>
 
       <If condition={configuration.auth.providers.phoneNumber}>
-        <PhoneNumberSignInContainer onSignIn={onInviteAccepted} />
+        <PhoneNumberSignInContainer
+          onSuccess={onInviteAccepted}
+          mode={'signUp'}
+        />
       </If>
 
       <If condition={configuration.auth.providers.emailLink}>

@@ -26,7 +26,7 @@ const EmailLinkAuth: React.FC = () => {
       const email = data.get('email') as string;
 
       const origin = window.location.origin;
-      const redirectUrl = [origin, configuration.paths.signInFromLink].join('');
+      const redirectUrl = [origin, configuration.paths.authCallback].join('');
 
       const promise = signInWithOtpMutation.trigger({
         email,
@@ -36,9 +36,9 @@ const EmailLinkAuth: React.FC = () => {
       });
 
       await toast.promise(promise, {
-        loading: t<string>('auth:sendingEmailLink'),
-        success: t<string>(`auth:sendLinkSuccessToast`),
-        error: t<string>(`auth:errors.link`),
+        loading: t('auth:sendingEmailLink'),
+        success: t(`auth:sendLinkSuccessToast`),
+        error: t(`auth:errors.link`),
       });
     },
     [signInWithOtpMutation, t]
@@ -69,7 +69,7 @@ const EmailLinkAuth: React.FC = () => {
           </TextField.Label>
         </TextField>
 
-        <Button size={'large'} loading={signInWithOtpMutation.isMutating}>
+        <Button loading={signInWithOtpMutation.isMutating}>
           <If
             condition={signInWithOtpMutation.isMutating}
             fallback={<Trans i18nKey={'auth:sendEmailLink'} />}

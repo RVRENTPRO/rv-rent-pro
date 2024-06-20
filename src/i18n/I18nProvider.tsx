@@ -1,12 +1,12 @@
 'use client';
 
 import { Suspense } from 'react';
+import type { i18n } from 'i18next';
+import { I18nextProvider } from 'react-i18next';
 
-import initializeI18nClient from '~/i18n/i18n.client';
-import initializeServerI18n from '~/i18n/i18n.server';
 import isBrowser from '~/core/generic/is-browser';
 
-let i18nDidInitialize = false;
+let client: i18n;
 
 function I18nProvider(
   props: React.PropsWithChildren<{
@@ -27,21 +27,21 @@ function I18nInitializer(
     lang?: string;
   }>
 ) {
-  if (!i18nDidInitialize) {
-    throw initializeI18n(props.lang);
+  if (!client || client.language !== props.lang) {
+    throw withI18nClient(props.lang);
   }
 
-  return <>{props.children}</>;
+  return <I18nextProvider i18n={client}>{props.children}</I18nextProvider>;
 }
 
-async function initializeI18n(lang?: string) {
-  const isServer = !isBrowser();
+async function withI18nClient(lang?: string) {
+  if (isBrowser()) {
+    const { default: initialize18n } = await import('~/i18n/i18n.client');
 
-  if (isServer) {
-    await initializeServerI18n(lang);
+    client = await initialize18n(lang);
   } else {
-    await initializeI18nClient(lang);
-  }
+    const { default: initialize18n } = await import('~/i18n/i18n.server');
 
-  i18nDidInitialize = true;
+    client = await initialize18n(lang);
+  }
 }

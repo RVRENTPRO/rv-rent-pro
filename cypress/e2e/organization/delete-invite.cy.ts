@@ -2,11 +2,11 @@ import organizationPageObject from '../../support/organization.po';
 
 describe(`Delete Invite`, () => {
   // this invite has been pre-populated with the following email
-  const invitedMemberEmail = `invite-delete@rvrentpro.com`;
+  const invitedMemberEmail = `invite-delete@rentpro.dev`;
 
   function signIn() {
-    organizationPageObject.useDefaultOrganization();
-    cy.signIn(`/settings/organization/members`);
+    const organization = organizationPageObject.useDefaultOrganization();
+    cy.signIn(`/dashboard/${organization}/settings/organization/members`);
   }
 
   function deleteInvite() {

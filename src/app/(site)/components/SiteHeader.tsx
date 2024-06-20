@@ -20,32 +20,44 @@ const fixedClassName = `FixedHeader`;
 const SiteHeader: React.FCC<{
   fixed?: boolean;
 }> = ({ fixed }) => {
-  const signOut = useSignOut(false);
+  const signOut = useSignOut();
   const userSession = useUserSession();
 
   return (
     <div className={`w-full py-4 ${fixed ? fixedClassName : ''}`}>
       <Container>
         <div className="flex w-full items-center justify-between">
-          <div className={'flex items-center space-x-4 lg:space-x-8'}>
-            <Logo />
+          <div className={'flex items-center lg:space-x-8'}>
+          
 
-            <SiteNavigation />
+            <div className={'hidden lg:flex'}>
+              <SiteNavigation />
+            </div>
           </div>
 
-          <div className={'flex flex-1 items-center justify-end space-x-2'}>
-            <div className={'flex items-center'}>
-              <If condition={configuration.enableThemeSwitcher}>
+          <div className={'flex flex-1 items-center justify-end space-x-4'}>
+            <div className={'hidden items-center lg:flex'}>
+              <If
+                condition={
+                  configuration.enableThemeSwitcher && !userSession?.auth
+                }
+              >
                 <DarkModeToggle />
               </If>
             </div>
 
-            <If condition={userSession?.auth} fallback={<AuthButtons />}>
-              <ProfileDropdown
-                userSession={userSession}
-                signOutRequested={signOut}
-              />
+            <If condition={userSession} fallback={<AuthButtons />}>
+              {(session) => (
+                <ProfileDropdown
+                  userSession={session}
+                  signOutRequested={signOut}
+                />
+              )}
             </If>
+
+            <div className={'flex lg:hidden'}>
+              <SiteNavigation />
+            </div>
           </div>
         </div>
       </Container>
@@ -56,11 +68,11 @@ const SiteHeader: React.FCC<{
 function AuthButtons() {
   return (
     <div className={'hidden space-x-2 lg:flex'}>
-      <Button color={'transparent'} href={configuration.paths.signIn}>
+      <Button round color={'transparent'} href={configuration.paths.signIn}>
         <span>Sign In</span>
       </Button>
 
-      <Button href={configuration.paths.signUp}>
+      <Button round color={'secondary'} href={configuration.paths.signUp}>
         <span className={'flex items-center space-x-2'}>
           <span>Sign Up</span>
           <ArrowRightIcon className={'h-4'} />

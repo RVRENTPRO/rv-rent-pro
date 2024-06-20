@@ -15,8 +15,8 @@ import useSignInWithProvider from '~/core/hooks/use-sign-in-with-provider';
 const OAUTH_PROVIDERS = configuration.auth.providers.oAuth;
 
 const OAuthProviders: React.FCC<{
-  onSignIn: () => unknown;
-}> = ({ onSignIn }) => {
+  returnUrl?: string;
+}> = (props) => {
   const signInWithProviderMutation = useSignInWithProvider();
 
   // we make the UI "busy" until the next page is fully loaded
@@ -30,13 +30,11 @@ const OAuthProviders: React.FCC<{
         if (!credential) {
           return Promise.reject();
         }
-
-        onSignIn();
       } catch (error) {
         throw error;
       }
     },
-    [onSignIn]
+    []
   );
 
   if (!OAUTH_PROVIDERS || !OAUTH_PROVIDERS.length) {
@@ -58,10 +56,14 @@ const OAuthProviders: React.FCC<{
                 providerId={provider}
                 onClick={() => {
                   const origin = window.location.origin;
-                  const redirectTo = [
-                    origin,
-                    configuration.paths.signInFromLink,
-                  ].join('');
+                  const callback = configuration.paths.authCallback;
+
+                  const returnUrlParams = props.returnUrl
+                    ? `?returnUrl=${props.returnUrl}`
+                    : '';
+
+                  const returnUrl = [callback, returnUrlParams].join('');
+                  const redirectTo = [origin, returnUrl].join('');
 
                   const credentials = {
                     provider,

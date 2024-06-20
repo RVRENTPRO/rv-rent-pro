@@ -7,6 +7,7 @@ import {
 
 import type Organization from '~/lib/organizations/types/organization';
 import type { Database } from '~/database.types';
+import { getOrganizationByUid } from '~/lib/organizations/database/queries';
 
 type OrganizationRow = Database['public']['Tables']['organizations']['Row'];
 
@@ -48,23 +49,39 @@ export async function updateOrganization(
  * @name setOrganizationSubscriptionData
  * @description Adds or updates a subscription to an Organization
  */
-export function setOrganizationSubscriptionData(
+export async function setOrganizationSubscriptionData(
   client: Client,
   props: {
-    organizationId: number;
+    organizationUid: string;
     customerId: string;
     subscriptionId: string;
   }
 ) {
-  const { customerId, organizationId, subscriptionId } = props;
+  const { customerId, organizationUid, subscriptionId } = props;
+
+  const { data: organization, error } = await getOrganizationByUid(
+    client,
+    organizationUid
+  );
+
+  if (error || !organization) {
+    throw error;
+  }
+
+  const organizationId = organization.id;
 
   return client
     .from(ORGANIZATIONS_SUBSCRIPTIONS_TABLE)
-    .upsert({
-      customer_id: customerId,
-      subscription_id: subscriptionId,
-      organization_id: organizationId,
-    })
-    .match({ id: organizationId })
+    .upsert(
+      {
+        customer_id: customerId,
+        subscription_id: subscriptionId,
+        organization_id: organizationId,
+      },
+      {
+        onConflict: 'customer_id',
+      }
+    )
+    .match({ customer_id: customerId })
     .throwOnError();
 }

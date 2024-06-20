@@ -1,52 +1,59 @@
 'use client';
 
-import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import type { User } from '@supabase/auth-helpers-nextjs';
+import { useCallback, useTransition } from 'react';
+import type { Session } from '@supabase/auth-helpers-nextjs';
 
 import Trans from '~/core/ui/Trans';
 import Button from '~/core/ui/Button';
 
-import GuardedPage from '~/app/(app)/components/GuardedPage';
 import useSignOut from '~/core/hooks/use-sign-out';
-import isBrowser from '~/core/generic/is-browser';
-import useAcceptInvite from '~/app/invite/use-accept-invite';
-import configuration from '~/configuration';
+import useRefresh from '~/core/hooks/use-refresh';
+import useCsrfToken from '~/core/hooks/use-csrf-token';
+import { acceptInviteAction } from '~/lib/memberships/actions';
 
 function ExistingUserInviteForm(
   props: React.PropsWithChildren<{
-    user: User;
+    session: Session;
+    code: string;
   }>
 ) {
   const signOut = useSignOut();
-  const redirectOnSignOut = getRedirectPath();
-  const acceptInvite = useAcceptInvite();
-  const router = useRouter();
+  const refresh = useRefresh();
+  const [isSubmitting, startTransition] = useTransition();
+  const csrfToken = useCsrfToken();
+
+  const onSignOut = useCallback(async () => {
+    await signOut();
+    await refresh();
+  }, [refresh, signOut]);
 
   const onInviteAccepted = useCallback(async () => {
-    await acceptInvite.trigger();
-
-    return router.push(configuration.paths.appHome);
-  }, [acceptInvite, router]);
+    return startTransition(async () => {
+      await acceptInviteAction({
+        csrfToken,
+        code: props.code,
+      });
+    });
+  }, [props.code, csrfToken, startTransition]);
 
   return (
-    <GuardedPage whenSignedOut={redirectOnSignOut}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          return onInviteAccepted();
-        }}
-        className={'flex flex-col space-y-8'}
-      >
+    <>
+      <div className={'flex flex-col space-y-4'}>
         <p className={'text-center text-sm'}>
           <Trans
             i18nKey={'auth:clickToAcceptAs'}
-            values={{ email: props.user?.email }}
+            values={{ email: props.session?.user.email }}
             components={{ b: <b /> }}
           />
         </p>
 
-        <Button data-cy={'accept-invite-submit-button'} type={'submit'}>
+        <Button
+          block
+          loading={isSubmitting}
+          onClick={onInviteAccepted}
+          data-cy={'accept-invite-submit-button'}
+          type={'submit'}
+        >
           <Trans i18nKey={'auth:acceptInvite'} />
         </Button>
 
@@ -64,22 +71,19 @@ function ExistingUserInviteForm(
 
             <Button
               block
+              disabled={isSubmitting}
               color={'transparent'}
               size={'small'}
-              onClick={signOut}
+              onClick={onSignOut}
               type={'button'}
             >
               <Trans i18nKey={'auth:signOut'} />
             </Button>
           </div>
         </div>
-      </form>
-    </GuardedPage>
+      </div>
+    </>
   );
 }
 
 export default ExistingUserInviteForm;
-
-function getRedirectPath() {
-  return isBrowser() ? window.location.pathname : undefined;
-}

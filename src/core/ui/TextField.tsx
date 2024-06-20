@@ -3,6 +3,7 @@
 import React, { forwardRef } from 'react';
 import classNames from 'classnames';
 import { Transition } from '@headlessui/react';
+
 import Label from './Label';
 import If from '~/core/ui/If';
 
@@ -20,20 +21,17 @@ const Hint: React.FC<React.PropsWithChildren> = ({ children }) => {
 };
 
 const Input = forwardRef<React.ElementRef<'input'>, Props>(
-  function TextFieldInputComponent(
-    { className, children, defaultValue, ...props },
-    ref
-  ) {
+  function TextFieldInputComponent({ className, children, ...props }, ref) {
     return (
       <div
         className={classNames(
-          `relative flex h-10 w-full items-center rounded-md border
-        border-gray-200 bg-white font-medium
-        text-gray-800 shadow-sm ring-primary-500 transition-all focus-within:border-transparent
-        focus-within:ring-2 hover:border-gray-300 hover:bg-gray-50 focus-within:hover:border-transparent
-        dark:border-black-200 dark:bg-black-500
-        dark:text-gray-200 dark:hover:border-black-100
-        dark:focus-within:hover:border-transparent dark:focus:bg-black-400 lg:text-sm`,
+          `active-within:ring-2 relative flex h-10 w-full items-center
+        rounded-md border border-gray-200 bg-white font-medium text-gray-800
+        shadow-sm ring-primary-200 ring-offset-1 transition-all focus-within:ring-2
+        hover:border-gray-300 hover:bg-gray-50 
+        dark:border-black-200 dark:bg-black-400
+        dark:text-gray-200 dark:focus-within:ring-primary-500/70 dark:focus-within:ring-offset-black-500
+        dark:hover:border-black-100 dark:focus:bg-black-400 lg:text-sm`,
           className,
           {
             [`cursor-not-allowed bg-gray-100 hover:bg-gray-100 dark:bg-black-400`]:
@@ -48,7 +46,7 @@ const Input = forwardRef<React.ElementRef<'input'>, Props>(
         <input
           {...props}
           className={classNames(
-            `h-10 flex-1 rounded-md bg-transparent px-2.5 outline-none`,
+            `h-10 flex-1 rounded-md bg-transparent px-3 py-2 outline-none disabled:cursor-not-allowed disabled:opacity-30`,
             className
           )}
           ref={ref}

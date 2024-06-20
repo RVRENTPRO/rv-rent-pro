@@ -4,12 +4,12 @@ const production = process.env.NODE_ENV === 'production';
 
 const configuration = {
   site: {
-    name: 'RVRP - Our Slogan',
-    description: 'The best RV Rental Management Software',
+    name: 'RVRENTPRO',
+    description: 'Rent Pro - Our Software',
     themeColor: '#ffffff',
     themeColorDark: '#0a0a0a',
     siteUrl: process.env.NEXT_PUBLIC_SITE_URL,
-    siteName: 'RVRP',
+    siteName: 'RVRENTPRO',
     twitterHandle: '',
     githubHandle: '',
     language: 'en',
@@ -17,8 +17,7 @@ const configuration = {
     locale: process.env.NEXT_PUBLIC_DEFAULT_LOCALE,
   },
   auth: {
-    // ensure this is the same as your Supabase project
-    // by default - it's true in production and false in development
+    // ensure this is the same as your Supabase project. By default - it's true
     requireEmailConfirmation:
       process.env.NEXT_PUBLIC_REQUIRE_EMAIL_CONFIRMATION === 'true',
     // NB: Enable the providers below in the Supabase Console
@@ -36,25 +35,16 @@ const configuration = {
   paths: {
     signIn: '/auth/sign-in',
     signUp: '/auth/sign-up',
-    signInFromLink: '/auth/link',
+    signInMfa: '/auth/verify',
     onboarding: `/onboarding`,
+    appPrefix: '/dashboard',
     appHome: '/dashboard',
+    authCallback: '/auth/callback',
     settings: {
-      profile: '/settings/profile',
-      authentication: '/settings/profile/authentication',
-      email: '/settings/profile/email',
-      password: '/settings/profile/password',
-    },
-    api: {
-      checkout: `/api/stripe/checkout`,
-      billingPortal: `/api/stripe/portal`,
-      organizations: {
-        create: `/api/organizations`,
-        current: `/api/organizations/[organization]/current`,
-        transferOwnership: `/api/organizations/owner`,
-        members: `/api/organizations/members`,
-        member: `/api/organizations/members/[member]`,
-      },
+      profile: 'settings/profile',
+      authentication: 'settings/profile/authentication',
+      email: 'settings/profile/email',
+      password: 'settings/profile/password',
     },
   },
   email: {
@@ -62,10 +52,10 @@ const configuration = {
     port: 587,
     user: '',
     password: '',
-    senderAddress: 'rvrentpro Team <info@rvrentpro.com>',
+    senderAddress: 'RVRentPro Team <info@rentpro.dev>',
   },
   sentry: {
-    dsn: process.env.SENTRY_DSN,
+    dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   },
   stripe: {
     products: [
@@ -84,13 +74,11 @@ const configuration = {
             name: 'Monthly',
             price: '$9',
             stripePriceId: 'price_1LfXGaI1i3VnbZTq7l3VgZNa',
-            trialPeriodDays: 0,
           },
           {
             name: 'Yearly',
             price: '$90',
             stripePriceId: 'basic-plan-yr',
-            trialPeriodDays: 0,
           },
         ],
       },
@@ -110,13 +98,11 @@ const configuration = {
             name: 'Monthly',
             price: '$29',
             stripePriceId: 'pro-plan-mth',
-            trialPeriodDays: 0,
           },
           {
             name: 'Yearly',
             price: '$200',
             stripePriceId: 'pro-plan-yr',
-            trialPeriodDays: 0,
           },
         ],
       },
@@ -135,7 +121,6 @@ const configuration = {
             name: '',
             price: 'Contact us',
             stripePriceId: '',
-            trialPeriodDays: 0,
             label: `Contact us`,
             href: `/contact`,
           },
